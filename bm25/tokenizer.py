@@ -1,4 +1,7 @@
 import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import re
 import json
 import pickle
@@ -7,6 +10,8 @@ from dataclasses import dataclass
 from typing import Union, List, Dict
 
 from tqdm import tqdm
+from transformers import AutoTokenizer
+
 
 @dataclass
 class TokenizerOutput:
@@ -284,3 +289,15 @@ STOPWORDS_EN = [
     "yourself",
     "yourselves",
 ]
+
+
+if __name__ == "__main__":
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+    vocab = tokenizer.vocab
+    print(len(vocab.values()))
+    
+    # with open("data\\nq_doc.tsv", "r", encoding="utf-8") as f:
+    #     for line in f:
+    #         cid, text = line.strip().split('\t')
+    #         print(tokenizer.encode(text))
+    #         break
