@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 from tqdm import tqdm
-from scoring import select_idf_scorer, select_tfc_scorer
+from bm25.scoring import select_idf_scorer, select_tfc_scorer
 
 from invert_index import InvertIndex
 
@@ -10,27 +10,32 @@ logger = logging.getLogger(__name__)
 class BM25Retriever:
     def __init__(self,
                  index_path,
+                 index_name,
                  method="lucene",
                  k1=1.2,
                  b=0.75,
-                 delta=0.5):
+                 delta=0.5,
+                 force_rebuild=False):
         self.method = method
         self.k1 = k1
         self.b = b
         self.delta = delta
 
         self.index_path = index_path
-        self.invert_index = InvertIndex(index_path)
+        self.invert_index = InvertIndex(index_path, index_name, force_rebuild=force_rebuild)
     
 
     def retrieve(self, query_ids, topk=100, threshold=0.0):
-        scores = self.invert_index.match(
-            # self.invert_index.numba_index_ids,
-            # self.invert_index.numba_index_values,
-            query_ids, corpus_size=self.invert_index.total_docs)
+        if self.invert_index.numba:
+            scores = self.invert_index.match_numba(
+                self.invert_index.numba_index_ids,
+                self.invert_index.numba_index_values,
+                query_ids, corpus_size=self.invert_index.total_docs)
+            
+        else:
+            scores = self.invert_index.match(query_ids, corpus_size=self.invert_index.total_docs)    
         filtered_indices = np.argwhere(scores > threshold)[:, 0]
         scores = scores[filtered_indices]
-
         # select top K
         if len(scores) > topk:
             top_indices = np.argpartition(scores, -topk)[-topk:]
@@ -66,9 +71,12 @@ class BM25Retriever:
 
             # [DOC_LEN]
             scores = tfc * idf 
-            self.invert_index.add_item([doc_idx for _ in range(len(token_in_doc))], token_in_doc, scores)
+            self.invert_index.add_batch_item(token_in_doc, [doc_idx for _ in range(len(token_in_doc))], scores)
 
         self.invert_index.save()
+    
+    def get_postings(self, query):
+        return self.invert_index.get_postings(query)
     
     def _calc_doc_frequencies(self, corpus_ids, vocab_ids):
         vocab_set = set(vocab_ids)

@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import re
 import json
 import pickle
+import argparse
 import numpy as np
 from dataclasses import dataclass
 from typing import Union, List, Dict
@@ -291,10 +292,36 @@ STOPWORDS_EN = [
 ]
 
 
+def tokenize(args):
+    print("Runing tokenization")
+    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name)
+
+    with open(args.corpus_path, "r") as fi, open(args.output_path, "w") as fo:
+        lines = fi.readlines()
+        total_lines = len(lines)
+        print("Total lines: {}".format(total_lines))
+
+        for line in tqdm(lines, total=total_lines):
+            cid, text = line.strip().split('\t')
+            tokens = tokenizer.encode(text, add_special_tokens=False)
+            encoded = {
+                "text_id": cid,
+                "text": tokens
+            }
+            fo.write(json.dumps(encoded) + "\n")
+
+
 if __name__ == "__main__":
-    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-    vocab = tokenizer.vocab
-    print(len(vocab.values()))
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--tokenizer_name", type=str)
+    parser.add_argument("--corpus_path", type=str, required=False)
+    parser.add_argument("--output_path", type=str, required=False)
+
+    args = parser.parse_args()
+    tokenize(args)
+    # tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+    # vocab = tokenizer.vocab
+    # print(len(vocab.values()))
     
     # with open("data\\nq_doc.tsv", "r", encoding="utf-8") as f:
     #     for line in f:
