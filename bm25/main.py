@@ -23,6 +23,7 @@ if __name__ == "__main__":
     parser.add_argument("--build_index", action="store_true")
     parser.add_argument("--corpus_path", type=str, required=False)
     parser.add_argument("--index_path", type=str, required=False)
+    parser.add_argument("--index_name", type=str, required=False)
     parser.add_argument("--do_tokenize", action="store_true")
     parser.add_argument("--index_file_name", type=str, default="array_index", required=False)
     parser.add_argument("--force_rebuild", action="store_true")
@@ -43,7 +44,7 @@ if __name__ == "__main__":
     
     if args.build_index:
         tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name)
-        bm25 = BM25Retriever(args.index_path, method=args.method, k1=args.k1, b=args.b, delta=args.delta, 
+        bm25 = BM25Retriever(args.index_path, args.index_name, method=args.method, k1=args.k1, b=args.b, delta=args.delta, 
                              file_name=args.index_file_name, force_rebuild=args.force_rebuild)
 
         corpus_idx, corpus_list = [], []
@@ -67,7 +68,7 @@ if __name__ == "__main__":
         # stemmer = Stemmer.Stemmer("english")
         # token = Tokenizer(tokenizer_path=args.tokenizer_path, stemmer=stemmer)
         tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name)
-        bm25 = BM25Retriever(args.index_path)
+        bm25 = BM25Retriever(args.index_path, args.index_name)
 
         query_idx, query_list = [], []
         if args.do_tokenize:

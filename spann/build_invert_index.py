@@ -33,6 +33,6 @@ if __name__ == "__main__":
 
     os.makedirs(args.index_dir, exist_ok=True)
     
-    # build_invert_index(args)
-    ii = InvertIndex(args.index_dir, args.index_name, save_method=args.save_method)
-    print(ii.index_ids)
+    build_invert_index(args)
+    # ii = InvertIndex(args.index_dir, args.index_name, save_method=args.save_method)
+    # print(ii.index_ids)

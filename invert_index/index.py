@@ -9,6 +9,11 @@ import numpy as np
 from tqdm import tqdm
 from collections import defaultdict
 
+from numba.typed import Dict, List
+from numba import types
+
+# from posting_list import PostingList
+
 logger = logging.getLogger(__name__)
 
 def create_int_array():
@@ -22,7 +27,8 @@ class InvertIndex:
                  index_path=None, 
                  file_name="array_index",
                  force_rebuild=False,
-                 save_method="pickle"):
+                 save_method="pickle",
+                 index_dim=None):
         os.makedirs(index_path, exist_ok=True)
         self.save_method = save_method
         
@@ -35,7 +41,7 @@ class InvertIndex:
                 with h5py.File(self.file_path, "r") as f:
                     self.index_ids = dict()
                     self.index_values = dict()
-                    dim = f["dim"][()]
+                    dim = f["dim"][()] if index_dim is None else index_dim
                     for key in tqdm(range(dim), desc="Loading index"):
                         try:
                             self.index_ids[key] = np.array(f["index_ids_{}".format(key)], dtype=np.int32)
@@ -43,7 +49,10 @@ class InvertIndex:
                         except:
                             self.index_ids[key] = np.array([], dtype=np.int32)
                             self.index_values[key] = np.array([], dtype=np.float32)
-                    self.total_docs = f["total_docs"][()]
+                    try:
+                        self.total_docs = f["total_docs"][()]
+                    except:
+                        self.total_docs = -1
                     f.close()
                 print("Index loaded")
             else:
@@ -102,18 +111,27 @@ class InvertIndex:
             index_dist[int(k)] = len(v)
         json.dump(index_dist, open(os.path.join(self.index_path, "index_dist.json"), "w"))
 
+    def save_json(self, output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+
     def __len__(self):
         return len(self.index_ids)
     
     def engage_numba(self):
-        self.numba_index_ids = numba.typed.Dict()
-        self.numba_index_values = numba.typed.Dict()
+        self.numba_index_ids = Dict.empty(
+            key_type=types.int64,
+            value_type=types.int64[:]
+        )
+        self.numba_index_values = Dict.empty(
+            key_type=types.int64,
+            value_type=types.float64[:]
+        )
         self.numba = True
 
         for k, v in self.index_ids.items():
-            self.numba_index_ids[k] = v
+            self.numba_index_ids[k] = np.array(v, dtype=np.int64)
         for k, v in self.index_values.items():
-            self.numba_index_values[k] = v
+            self.numba_index_values[k] = np.array(v, dtype=np.float64)
         print("Numba engaged")
 
     @staticmethod
@@ -135,7 +153,7 @@ class InvertIndex:
             for j in numba.prange(len(retrieved_indices)):
                 scores[retrieved_indices[j]] += query_value * retrieved_values[j]
         return scores
-    
+
     def match(self, query_ids, corpus_size, query_values=None):
         scores = np.zeros(corpus_size, dtype=np.float32)
         N = len(query_ids)
@@ -149,12 +167,32 @@ class InvertIndex:
                 scores[retrieved_indices[j]] += query_value * retrieved_values[j]
         return scores
 
+    def select_topk(self, scores, threshold=0.0, topk=100):
+        filtered_indices = np.argwhere(scores > threshold)[:, 0]
+        scores = scores[filtered_indices]
+        if len(scores) > topk:
+            top_indices = np.argpartition(scores, -topk)[-topk:]
+            filtered_indices, scores = filtered_indices[top_indices], scores[top_indices]
+        sorted_indices = np.argsort(-scores)
+        return filtered_indices[sorted_indices], scores[sorted_indices]
+
     def get_postings(self, query):
         posting_list, posting_value = [], [] 
         for i in range(len(query)):
             query_idx = query[i]
-            if query_idx not in self.index_ids.keys():
-                continue
-            posting_list.append(self.index_ids[query_idx])
-            posting_value.append(self.index_values[query_idx])
+            if query_idx in self.index_ids.keys():
+                posting_list.append(self.index_ids[query_idx])
+                posting_value.append(self.index_values[query_idx])
         return posting_list, posting_value
+
+
+    def numba_get_postings(self, query):
+        posting_list, posting_value = List.empty_list(types.int32[:]), List.empty_list(types.float64[:])
+        for i in range(len(query)):
+            query_idx = query[i]
+            if query_idx not in self.numba_index_ids.keys():
+                continue
+            posting_list.append(self.numba_index_ids[query_idx])
+            posting_value.append(self.numba_index_values[query_idx])
+        return posting_list, posting_value
+
