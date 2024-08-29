@@ -1,7 +1,5 @@
 #!/bin/bash
 
-export PYTHONPATH=/home/aiscuser/SPTAG/Release:PYTHONPATH
-
 # Search MARCO
 search_marco() {
   cd /datacosmos/User/baoht/onesparse2/hybridsearch/spann/index

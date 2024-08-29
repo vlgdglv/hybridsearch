@@ -52,4 +52,4 @@ if __name__  == "__main__":
 
             indice, scores = ii.select_topk(scores)
             for i, (idx, score) in enumerate(zip(indice, scores)):
-                f.write("{}\t{}\t{}\t{}\n".format(query["text_id"], idx, i+1, score))
+                f.write("{}\t{}\t{}\t{}\n".format(query["text_id"][0], idx, i+1, score))

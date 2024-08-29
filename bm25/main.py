@@ -45,7 +45,7 @@ if __name__ == "__main__":
     if args.build_index:
         tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name)
         bm25 = BM25Retriever(args.index_path, args.index_name, method=args.method, k1=args.k1, b=args.b, delta=args.delta, 
-                             force_rebuild=args.force_rebuild)
+                             file_name=args.index_file_name, force_rebuild=args.force_rebuild)
 
         corpus_idx, corpus_list = [], []
         if args.do_tokenize:
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         # stemmer = Stemmer.Stemmer("english")
         # token = Tokenizer(tokenizer_path=args.tokenizer_path, stemmer=stemmer)
         tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name)
-        bm25 = BM25Retriever(args.index_path, args.index_name, k1=args.k1, b=args.b, delta=args.delta)
+        bm25 = BM25Retriever(args.index_path, args.index_name)
 
         query_idx, query_list = [], []
         if args.do_tokenize:
