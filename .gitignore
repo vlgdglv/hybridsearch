@@ -1,13 +1,16 @@
 # Specific
 dataset/data/
 **/runs/
-**/index/
 **/retrieve_results/
 *.fbin
 *.pt
 **/embeddings/
 **/assets/
 **/tokenizer/
+bm25/index
+**/index/*
+!**/index/*.py
+!**/index/*.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

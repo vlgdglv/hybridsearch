@@ -77,6 +77,15 @@ class BM25Retriever:
     
     def get_postings(self, query):
         return self.invert_index.get_postings(query)
+
+    def engage_numba(self):
+        self.invert_index.engage_numba()
+    
+    def numba_get_postings(self, query):
+        return self.invert_index.numba_get_postings(query)
+
+    def get_total_docs(self):
+        return self.invert_index.total_docs
     
     def _calc_doc_frequencies(self, corpus_ids, vocab_ids):
         vocab_set = set(vocab_ids)
