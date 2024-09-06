@@ -50,13 +50,13 @@ if __name__ == "__main__":
         corpus_idx, corpus_list = [], []
         if args.do_tokenize:
             with open(args.corpus_path, "r", encoding="utf-8") as f:
-                for line in f:
+                for line in tqdm(f, desc="Tokenizing"):
                     cid, text = line.strip().split('\t')
                     corpus_idx.append(cid)
                     corpus_list.append(tokenizer.encode(text))
         else:
             with open(args.corpus_path, "r") as f:
-                for line in f:
+                for line in tqdm(f, desc="Loading"):
                     content = json.loads(line.strip())
                     corpus_idx.append(int(content["text_id"]))
                     corpus_list.append(content["text"])

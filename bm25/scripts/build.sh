@@ -10,7 +10,7 @@ python bm25/main.py \
     --build_index \
     --force_rebuild \
     --do_tokenize \
-    --tokenizer_name Luyu/co-condenser-wiki \
+    --tokenizer_name utils/bert-base-uncased-modified \
     --corpus_path data/nq/nq_doc.tsv \
     --index_path bm25/index/nq \
     --index_name array_index.h5py

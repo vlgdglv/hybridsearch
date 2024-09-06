@@ -28,7 +28,6 @@ class InvertIndex:
                  index_path=None, 
                  file_name="array_index.h5py",
                  force_rebuild=False,
-                 save_method=None,
                  index_dim=None):
         os.makedirs(index_path, exist_ok=True)
         
@@ -79,7 +78,8 @@ class InvertIndex:
             if os.path.exists(self.file_path) and not force_rebuild:
                 with open(self.file_path, "rb") as f:
                     num_keys, total_docs = struct.unpack('I I', f.read(8))
-
+                    index_ids = dict()
+                    index_values = dict()
                     for _ in range(num_keys):
                         key = struct.unpack('I', f.read(4))[0]
 
@@ -102,7 +102,7 @@ class InvertIndex:
                 self.index_values = defaultdict(lambda: array.array('f'))
                 self.total_docs = 0
         else:
-            raise ValueError("Unsupported save method: {}".format(save_method))
+            raise ValueError("Unsupported save method")
         self.numba = False
 
     def add_batch_item(self, col, row, value):
@@ -132,7 +132,7 @@ class InvertIndex:
                     f.create_dataset("index_ids_{}".format(key), data=self.index_ids[key])
                     f.create_dataset("index_values_{}".format(key), data=self.index_values[key])
                 f.close()
-        elif self.save_method == "pickle":
+        elif self.save_method == "pkl":
             print("Save index to {}".format(self.file_path))
             with open(self.file_path, "wb") as f:
                 pickle.dump((self.index_ids, self.index_values, self.total_docs), f)
@@ -153,9 +153,8 @@ class InvertIndex:
 
                     f.write(struct.pack("I", values_size))
                     f.write(values_array.tobytes())
-
-                
-
+        else:
+            raise ValueError("Unsupported save method: {}".format(self.save_method))
         print("Index saved")
         index_dist = {}
         for k, v in self.index_ids.items():
@@ -246,4 +245,3 @@ class InvertIndex:
             posting_list.append(self.numba_index_ids[query_idx])
             posting_value.append(self.numba_index_values[query_idx])
         return posting_list, posting_value
-

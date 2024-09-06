@@ -23,6 +23,7 @@ class BM25Retriever:
 
         self.index_path = index_path
         self.invert_index = InvertIndex(index_path, index_name, force_rebuild=force_rebuild)
+        print("BM25 index loaded: {}".format(self.invert_index.total_docs))
     
 
     def retrieve(self, query_ids, topk=100, threshold=0.0):
@@ -50,7 +51,7 @@ class BM25Retriever:
               corpus_ids,
               vocab_ids):
         n_docs, n_vocab = len(corpus_ids), len(vocab_ids)
-        logger.debug("Building with n_docs: {}, n_vocab: {}".format(n_docs, n_vocab))
+        print("Building with n_docs: {}, n_vocab: {}".format(n_docs, n_vocab))
         avg_doc_len = np.mean([len(doc) for doc in corpus_ids])
         
         doc_frequencies = self._calc_doc_frequencies(corpus_ids, vocab_ids)
@@ -100,7 +101,4 @@ class BM25Retriever:
     def _calc_idf_array(self, idf_calc_fn, doc_frequencies, n_docs):
         idf_array = np.zeros(len(doc_frequencies))
         for token_id, doc_freq in doc_frequencies.items():
-            idf_array[token_id] = idf_calc_fn(doc_freq, n_docs)
-
-        return idf_array
-    
+            idf_ar

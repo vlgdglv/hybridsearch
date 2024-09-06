@@ -13,7 +13,7 @@ from invert_index import InvertIndex
 
 
 def build_invert_index(args):
-    index = InvertIndex(args.index_dir, args.index_name, force_rebuild=args.force_rebuild, save_method=args.save_method)
+    index = InvertIndex(args.index_dir, args.index_name, force_rebuild=args.force_rebuild)
     with open(args.cluster_file, "r") as f:
         for cid, line in enumerate(f):
             doc_ids = line.split(",")
