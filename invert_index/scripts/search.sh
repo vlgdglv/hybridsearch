@@ -1,7 +1,11 @@
 
 search_marco(){
     python invert_index/retrieve.py \
+<<<<<<< HEAD
         --index_dir  /datacosmos/User/baoht/onesparse2/Encoder/sparse_tower/index/marco/exp20240724_rebuild \
+=======
+        --index_dir  /datacosmos/User/baoht/onesparse2/Encoder/sparse_tower/index/marco/exp20240724 \
+>>>>>>> 29f28a85c1e00a1d67817b3fcd9e46a6a2c78669
         --index_name invert_index.h5py \
         --query_text_path /datacosmos/User/baoht/onesparse2/Encoder/sparse_tower/retrieve_results/exp20240724/encode_query.json \
         --output_path invert_index/retrieve_results/marco/ii.tsv \

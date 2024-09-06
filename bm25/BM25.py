@@ -101,4 +101,6 @@ class BM25Retriever:
     def _calc_idf_array(self, idf_calc_fn, doc_frequencies, n_docs):
         idf_array = np.zeros(len(doc_frequencies))
         for token_id, doc_freq in doc_frequencies.items():
-            idf_ar
+            idf_array[token_id] = idf_calc_fn(doc_freq, n_docs)
+
+        return idf_array

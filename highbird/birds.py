@@ -54,7 +54,6 @@ class Searcher:
     def search(self, query, query_embedding, topk=100):
         query_text = query["text"]
         query_value = query["value"] if "value" in query else [1.0 for _ in range(len(query_text))]
-        # print(query_value)
         ######## Simple but slow merge ######## 
         def simple_merge(this_postings, this_values, that_postings, that_values):
             cand1 = {}
@@ -257,6 +256,19 @@ def add_scores(cand, postings, scores, values):
                 cand[docid] = score
     
 
+
+@njit
+def add_scores(cand, postings, scores, values):
+    for i in range(len(postings)):
+        for j in range(len(postings[i])):
+            docid = postings[i][j]
+            score = scores[i][j] * values[i]
+            if docid in cand:
+                cand[docid] += score
+            else:
+                cand[docid] = score
+    
+
 def prepare_query(query_text_path, query_emb_path):
     with open(query_text_path, "r") as f:
         query_texts = [json.loads(line.strip()) for line in f]
@@ -287,8 +299,7 @@ if __name__ == "__main__":
     parser.add_argument("--gt_path", type=str, required=False)
     
     args = parser.parse_args()
-
-
+    
     doer = Searcher.build(args.this_index, args.this_index_name,
                           args.that_index, args.that_index_name, 
                           args.spann_index, args.doc_emb_path,

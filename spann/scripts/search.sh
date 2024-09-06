@@ -35,4 +35,3 @@ search_nq(){
 }
 
 search_marco
-# search_nq
